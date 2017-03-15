@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>表单验证demo</title>
+	
+	<!-[if lt IE9]>
+	<script scr="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+	<!endif->
+		
+	<!-- iconfont -->
+	<link rel="stylesheet" href="./iconfont/iconfont.css" />
+	<link rel="stylesheet" href="./css/common.css" />
+</head>
+<body>
+	<section class="panel">
+		<div class="panel-main">
+			<div class="head">
+				<h1>简单表单</h1>
+				<hr>
+			</div>
+
+			<div class="panel-edit">
+				<p>您的账号为<span class="warm">150****6463</span></p>
+
+				<form class="my-form ajax-submit" action="./bindPhone.jsp" method="post">
+					<div class="inline-input">
+						<label for="password">密码：</label>
+						<input type="password" class="input required" id="password" name="password" />
+						<span class="hint">6-20位，必须包含数字和字母</span>
+					</div>
+
+					<div class="inline-input">
+						<label for="phone">手机号：</label>
+						<input type="text" class="input required" id="phone" />
+						<span class="hint">请输入的手机号码</span>
+					</div>
+
+					<div class="inline-input">
+						<label for="validate-code">手机验证码：</label>
+						<input type="text" class="input input-connect required" id="validate-code" />
+						<button type="button" class="btn btn-default btn-connect" id="btn-validate-code">获取验证码</button>
+						<span class="hint"></span>
+					</div>
+
+					<div class="inline-input empty-label">
+						<button type="submit" class="btn btn-lg btn-success">提交</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</section>
+	
+	<script src="./libs/jquery/v3.1.1/jquery.min.js"></script>
+	<script src="./js/core.js"></script>
+	<script>
+	$(function() {
+		// 表单验证模式
+		var formValidate = new Validate([{
+				selector: '#password',
+				require: true,
+				reg: {
+					pattern: '^[A-Za-z0-9]{6,20}$',
+					hint: '6-20位，必须包含数字和字母'
+				}
+			}, {
+				selector: '#phone',
+				require: true,
+				triggerType: 'change',
+				reg: {
+					pattern: '^[0-9]{11}$',
+					hint: '格式错误'
+				}
+			}, {
+				selector: '#validate-code',
+				require: true,
+			}]);
+		
+		// 表单提交前
+		$('form.ajax-submit').on('form:beforesend', function(e, detail) {
+			var $form = $(this);
+			var submit = false;
+			
+			// 表单验证
+			submit = formValidate.validate();
+					
+			if(!submit) {
+				detail.xhr.abort();
+			}
+		});
+		
+		// 表单提交成功
+		$('form.ajax-submit').on('form:success', function(e, detail) {
+			
+		});
+
+		// 获取验证码
+		$('#btn-validate-code').click(function() {
+			var $this = $(this);
+			
+			$this.attr('disabled', true);
+			var totalTime = 60;
+			$this.text(totalTime + 's');
+			
+			timer(totalTime, function(time) {
+				$this.text(time + 's');
+				
+			}, function() {
+				$this.attr('disabled', false);
+				$this.text('获取验证码');
+			});
+		});
+	});
+	</script>
+</body>
+</html>
