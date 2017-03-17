@@ -4,7 +4,7 @@
 
 /**
  * 表单验证构造函数
- * 
+ * @param formSelector{String} 获取form元素的字符串
  * @param validateArray{Array} 对象数组，每个对象定义某个类型的文本框的校验规则， 对象定义如下：
  * 		  {
  * 	          [require]: true | false,                  {Boolean}
@@ -16,18 +16,22 @@
  *        }
  * 
  */
-function Validate(validateArray) {
+function Validate(formSelector, validateArray) {
 	 var _this = this;
-	// 绑定文本框输入事件
+
+	 _this.$form = $(formSelector);
+
+	// 绑定文本框事件
 	$.each(validateArray, function(i, obj) {
 		var triggerType = obj.triggerType || 'input propertychange';
-		$(obj.selector).on(triggerType, function(e) {
+		 _this.$form.on(triggerType, obj.selector, function(e) {
 			var newObj = obj;
-			obj.selector = this;
+			newObj.selector = this;
 			_this.validate(new Array(newObj));
 		});
 	});
-	this.validateArray = validateArray;
+
+	_this.validateArray = validateArray;
 }
 /**
  * 表单验证构造函数Validate的校验方法
@@ -37,6 +41,8 @@ function Validate(validateArray) {
  * 
  */
 Validate.prototype.validate = function(validateArray) {
+	var _this = this;
+
 	var validateArray = validateArray || this.validateArray;
 	
 	var validated = false;
@@ -44,7 +50,7 @@ Validate.prototype.validate = function(validateArray) {
 		var require = validateObj.require;
 		var reg = validateObj.reg;
 		
-		$.each($(validateObj.selector), function(j, ele) {
+		$.each(_this.$form.find(validateObj.selector), function(j, ele) {
 			var val = $(ele).val();
 			var $hint = $(ele).siblings('.hint');
 			

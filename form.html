@@ -23,7 +23,7 @@
 			<div class="panel-edit">
 				<p>您的账号为<span class="warm">150****6463</span></p>
 
-				<form class="my-form ajax-submit" action="./bindPhone.jsp" method="post">
+				<form class="my-form ajax-submit" action="./bindPhone.jsp" method="post" id="my-form">
 					<div class="inline-input">
 						<label for="password">密码：</label>
 						<input type="password" class="input required" id="password" name="password" />
@@ -56,7 +56,7 @@
 	<script>
 	$(function() {
 		// 表单验证模式
-		var formValidate = new Validate([{
+		var formValidate = new Validate('#my-form', [{
 				selector: '#password',
 				require: true,
 				reg: {
