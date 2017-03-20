@@ -4,7 +4,7 @@
 
 /**
  * 表单验证构造函数
- * @param formSelector{String} 获取form元素的字符串
+ * @param [formSelector]{String} 获取form元素的字符串
  * @param validateArray{Array} 对象数组，每个对象定义某个类型的文本框的校验规则， 对象定义如下：
  * 		  {
  * 	          [require]: true | false,                  {Boolean}
@@ -18,6 +18,11 @@
  */
 function Validate(formSelector, validateArray) {
 	 var _this = this;
+      
+	 if(arguments.length === 1) {
+	 	validateArray = arguments[0];
+	 	formSelector = document;
+	 }
 
 	 _this.$form = $(formSelector);
 
