@@ -26,8 +26,8 @@ function Validate(formSelector, validateArray) {
 
 	 _this.$form = $(formSelector);
 
-	// 绑定文本框事件
 	$.each(validateArray, function(i, obj) {
+		// 绑定文本框事件
 		var triggerType = obj.triggerType || 'input propertychange';
 		 _this.$form.on(triggerType, obj.selector, function(e) {
 			var newObj = obj;
@@ -35,6 +35,8 @@ function Validate(formSelector, validateArray) {
 			_this.validate(new Array(newObj));
 		});
 	});
+	
+	
 
 	_this.validateArray = validateArray;
 }
@@ -48,10 +50,10 @@ function Validate(formSelector, validateArray) {
 Validate.prototype.validate = function(validateArray) {
 	var _this = this;
 
-	var validateArray = validateArray || this.validateArray;
+	var _validateArray = validateArray || this.validateArray;
 	
-	var validated = false;
-	$.each(validateArray, function(i, validateObj) {
+	var validatedArr = [];
+	$.each(_validateArray, function(i, validateObj) {
 		var require = validateObj.require;
 		var reg = validateObj.reg;
 		
@@ -59,27 +61,60 @@ Validate.prototype.validate = function(validateArray) {
 			var val = $(ele).val();
 			var $hint = $(ele).siblings('.hint');
 			
+			if(!validateArray && $hint.hasClass('error')) {                            // 后台请求验证过的表单无需验证
+				validatedArr.push(false);
+				return true;
+			}
+			
 			// 不能为空
 			if(require && val === '') {
 				$hint.removeClass('success').addClass('error').text('不能为空');
-				validated = false;
-				return true;   // 退出本次循环 
+				validatedArr.push(false);
+				return true;   
 			}
 			
 			// 正则
 			if(reg && !new RegExp(reg.pattern).test(val)) {
 				$hint.removeClass('success').addClass('error').text(reg.hint);
-				validated = false;
+				validatedArr.push(false);
 				return true
 			}
 			
 			$hint.removeClass('error').addClass('success').text('');
-			validated = true;
-			
+			validatedArr.push(true);			
 		});
 	});
 	
+	var validated = true;
+	$.each(validatedArr, function(z, val) {
+		if(!val) {
+			validated = false;  
+			return false;
+		}
+	});
 	return validated;
+}
+/**
+ * 表单验证构造函数Validate显示后台返回信息的方法
+ * 
+ * @param msg{String} 
+ * 
+ */
+Validate.prototype.ShowBackStageMsg = function (msg) {
+	var _this = this;
+	if(msg === null) msg = 'null';
+	
+	_this.$form.find('.hint-backstage').text(msg)
+									  .show()
+									  .removeClass('twinkle')
+	setTimeout(function() {
+		_this.$form.find('.hint-backstage').addClass('twinkle');
+	},1);	
+}
+
+Validate.prototype.removeBackStageMsg = function () {
+	this.$form.find('.hint-backstage').text('')
+									  .hide();	
 }
 		
 /**
@@ -94,7 +129,6 @@ $(document).on('submit change', 'form.ajax-submit, form.ajax-submit-onchange', f
 	var contentType = $form.prop('enctype') || $form.attr('enctype');
 	
 	var url = $form.attr('action');
-	if(!url) return;
 	
 	var data = formSerializeArrayRemoveBlank($form.serializeArray());
 	
@@ -106,6 +140,7 @@ $(document).on('submit change', 'form.ajax-submit, form.ajax-submit-onchange', f
 		dataType: 'json',
 		beforeSend: function(xhr) {
 			$form.trigger('form:beforesend', {data:data, xhr: xhr});
+			if(!url) xhr.abort();
 		},
 		error: function(data) {
 			$form.trigger('form:error', {data: data});
@@ -149,4 +184,78 @@ function timer(totalTime, callback, stopCallback) {
 			stopCallback();
 		}
 	}, 1000);
+}
+
+/********************************************** jquery方法扩展 **********************************************/
+$.extend({
+	/**
+	 * 获取url后面的参数
+	 */
+	getUrlVars: function() {
+		var vars = [],
+			hash;
+		var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+		for(var i = 0; i < hashes.length; i++) {
+			hash = hashes[i].split('=');
+			vars.push(decodeURI(hash[0]));
+			vars[hash[0]] = decodeURI(hash[1]);
+		}
+		return vars;
+	},
+	
+	/**
+	 * 获取url后面某个参数的值
+	 * 
+	 * @param {string} name 参数的属性名
+	 */
+	getUrlVar: function(name) {
+		return $.getUrlVars()[name];
+	},
+});
+
+/********************************************** 判断邮箱地址 **********************************************/
+var mdutil = {
+	mailMap: {
+		"163.com": "http://mail.163.com",
+		"gmail.com": "http://gmail.com",
+		"126.com": "http://www.126.com",
+		"yahoo.com": "http://mail.cn.yahoo.com",
+		"yahoo.com.cn": "http://mail.cn.yahoo.com",
+		"yahoo.cn": "http://mail.cn.yahoo.com",
+		"hotmail.com": "http://mail.live.com",
+		"live.com": "http://mail.live.com",
+		"yeah.net": "http://www.yeah.net",
+		"tom.com": "http://mail.tom.com",
+		"sina.com": "http://mail.sina.com.cn",
+		"sina.com.cn": "http://mail.sina.com.cn",
+		"sina.cn": "http://mail.sina.com.cn",
+		"263.net": "http://mail.263.net",
+		"263.net.cn": "http://mail.263.net",
+		"x263.net": "http://mail.263.net",
+		"21cn.com": "http://mail.21cn.con",
+		"people.com.cn": "http://www.peoplemail.com.cn/extend/gb",
+		"vip.188.com": "http://www.188.com",
+		"188.com": "http://www.188.com",
+		"ruyi.com": "http://mail.ruyi.com",
+		"139.com": "http://mail.139.com",
+		"qq.com": "http://mail.qq.com",
+		"xinhuanet.com": "http://mail.xinhuanet.com",
+		"cctv.com": "http://mail.cctv.com",
+		"eyou.com": "http://www.eyou.com",
+		"eyou.net": "http://mail.eyou.net",
+		"35.com": "http://mail.35.com",
+		"shangmail.com": "http://www.shangmail.com",
+		"alibaba.com.cn": "http://china.alibaba.com/member/mail/mailLogin.htm",
+		"eastday.com": "http://mail.eastday.com"
+	},
+	// 切换input的可见状态
+	showPassword: function(eye) {
+		var $input = $(eye).siblings('input');
+		$(eye).toggleClass('active');
+		if($(eye).hasClass('active')) {
+			$input.prop('type', 'text');
+		}else {
+			$input.prop('type', 'password');
+		}
+	}
 }
